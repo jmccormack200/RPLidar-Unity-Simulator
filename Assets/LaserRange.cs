@@ -10,6 +10,9 @@ public class LaserRange : MonoBehaviour {
 	public float max_distance = 7.0f;
 	public int id = 1;
 
+	//This variable is used to reset the send queue
+	Boolean stop_send = false;
+	
 	private float angle = 0.0f;
 	private float distance = 0.0f;
 	private float x = 0.0f;
@@ -29,16 +32,23 @@ public class LaserRange : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		remoteEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+		client = new UdpClient (port);
+		client.Client.Blocking = false;
+
+		Thread.Sleep (20);
 
 		sendThread = new Thread(
 			new ThreadStart (SendData));
-		sendThread.IsBackground = true;
-		sendThread.Start();
+		sendThread.IsBackground = false;
+		sendThread.Start ();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	
+		if (Input.GetKeyDown ("q")) {
+			stop_send = true;
+			print ("Thread Halted, safe to stop");
+		}
 	}
 
 	void FixedUpdate(){
@@ -54,13 +64,13 @@ public class LaserRange : MonoBehaviour {
 
 		x = distance * Mathf.Cos (angle);
 		y = distance * Mathf.Sin (angle);
-		string send_string = "(" + id.ToString () + ",(" + x.ToString() + y.ToString () +"))";
+		string send_string = "(" + id.ToString () + ",(" + x.ToString() +"," + y.ToString () +"))";
 		send_queue.Enqueue (send_string);
 	}
 
 	//Borrowed below from previous LIDAR implementation
 	private void SendData(){
-		while(true){
+		while(stop_send == false){
 			try {
 				if (send_queue.Count > 0){
 					string packet = send_queue.Dequeue().ToString();
@@ -69,15 +79,27 @@ public class LaserRange : MonoBehaviour {
 					client.Send(data, data.Length, remoteEndPoint);
 				}
 			} catch (Exception err){
-				//print (err.ToString ());
+				print (err.ToString ());
 			}
 		}
 	}
 
 	void onApplicationQuit(){
+		print ("QUITTING!");
+		client.Close ();
 		sendThread.Abort ();
-		if (client != null) {
-			client.Close ();
+		sendThread.Join ();
+		print ("QUITTING!");
+	}
+
+	void OnGUI () {
+		String stop_message = "Thread Stopped, Safe To Exit";
+		String start_message = "Press Q Before Closing";
+		if (stop_send == true) {
+			GUI.Label(new Rect(Screen.width / 2, Screen.height / 2, 200f, 200f), stop_message);
+		} else {
+			GUI.Label(new Rect(Screen.width / 2, Screen.height / 2, 200f, 200f), start_message);
 		}
+
 	}
 }
