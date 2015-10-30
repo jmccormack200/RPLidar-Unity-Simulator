@@ -1,0 +1,36 @@
+Initialize engine version: 5.2.0f3 (e7947df39b5c)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: Intel(R) HD Graphics 4600 (ID=0x412)
+    Vendor:   Intel
+    VRAM:     128 MB
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\johnmccormack2307\Documents\Folder\testoutput_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\johnmccormack2307\Documents\Folder\testoutput_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\johnmccormack2307\Documents\Folder\testoutput_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\johnmccormack2307\Documents\Folder\testoutput_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\johnmccormack2307\Documents\Folder\testoutput_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading C:\Users\johnmccormack2307\Documents\Folder\testoutput_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: C:\Users\johnmccormack2307\Documents\Folder\testoutput_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading C:\Users\johnmccormack2307\Documents\Folder\testoutput_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+Platform assembly: C:\Users\johnmccormack2307\Documents\Folder\testoutput_Data\Managed\System.Core.dll (this message is harmless)
+- Completed reload, in  0.046 seconds
+desktop: 1920x1080 59Hz; virtual: 3840x1080 at 0,0
+<RI> Initializing input.
+XInput1_3.dll not found. Trying XInput9_1_0.dll instead...
+<RI> Input initialized.
+<RI> Initialized touch support.
+Platform assembly: C:\Users\johnmccormack2307\Documents\Folder\testoutput_Data\Managed\System.dll (this message is harmless)
+SocketException: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+
+  at System.Net.Sockets.Socket.Bind (System.Net.EndPoint local_end) [0x00000] in <filename unknown>:0 
+  at System.Net.Sockets.UdpClient.InitSocket (System.Net.EndPoint localEP) [0x00000] in <filename unknown>:0 
+  at System.Net.Sockets.UdpClient..ctor (Int32 port) [0x00000] in <filename unknown>:0 
+  at LaserRange.Start () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
+
+Setting up 2 worker threads for Enlighten.
+  Thread -> id: 17d0 -> priority: 1 
+  Thread -> id: 11a4 -> priority: 1 
