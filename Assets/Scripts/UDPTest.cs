@@ -30,10 +30,9 @@ public struct LidarPoint{
 public class UDPTest : MonoBehaviour {
 
 	Thread receiveThread;
-	Thread sendThread;
+	//Thread sendThread;
 
 	UdpClient client;
-	IPEndPoint remoteEndPoint;
 
 	public int port;
 	public float scale = 50.0f;
@@ -41,7 +40,6 @@ public class UDPTest : MonoBehaviour {
 	private string lastReceivedUDPPackets="";
 	public string allReceivedUDPPackets = "";
 	private Queue queue = new Queue();
-	private Queue send_queue = new Queue();
 
 	//Used for bad data points
 	// Where the distance = 0
@@ -56,8 +54,7 @@ public class UDPTest : MonoBehaviour {
 	public int childrenSweep = 0;
 	public int numberofChildren = 0;
 
-	public string arduinoIP = "192.168.0.111";
-	public int arduinoport = 2390;
+	bool stop_send = false;
 
 
 	//Dictionary for storing the name/gameobject pairs
@@ -106,16 +103,10 @@ public class UDPTest : MonoBehaviour {
 
 		addPoints();
 
-		remoteEndPoint = new IPEndPoint(IPAddress.Parse(arduinoIP), arduinoport);
-
 		receiveThread = new Thread (
 			new ThreadStart (ReceiveData));
 		//receiveThread.IsBackground = true;
 		receiveThread.Start ();
-		sendThread = new Thread(
-			new ThreadStart (SendData));
-		sendThread.IsBackground = true;
-		sendThread.Start();
 	}
 
 	private void addPoints(){
@@ -131,7 +122,7 @@ public class UDPTest : MonoBehaviour {
 //Threaded portion for recieving and preprocessing the data. 
 	private void ReceiveData(){
 		client = new UdpClient (port);
-		while (true) {
+		while (stop_send == false) {
 			try {
 				IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
 				byte[] data = client.Receive (ref anyIP);
@@ -144,20 +135,7 @@ public class UDPTest : MonoBehaviour {
 			}
 		}
 	}
-
-	private void SendData(){
-		while(true){
-			try {
-				if (send_queue.Count > 0){
-					string length = send_queue.Dequeue().ToString();
-					byte[] data = Encoding.UTF8.GetBytes(length);
-					client.Send(data, data.Length, remoteEndPoint);
-				}
-			} catch (Exception err){
-				print (err.ToString ());
-			}
-		}
-	}
+	
 
 	private static LidarPoint convertData(string data){
 		//ID number [(][0-9]+[,][ ]?[(]
@@ -271,15 +249,19 @@ public class UDPTest : MonoBehaviour {
 
 	void Update(){
 		//queue.Clear ();
+		if (Input.GetKeyDown ("q")) {
+			stop_send = true;
+			print ("Thread Halted, safe to stop");
+		}
+		if (stop_send == true) {
+			receiveThread.Abort();
+		}
 	}
 
 	void OnAplicationQuit()
 	{
 		if (receiveThread.IsAlive) {
 			receiveThread.Abort(); 
-		}
-		if (sendThread.IsAlive){
-			sendThread.Abort();
 		}
 		client.Close(); 
 	}	
