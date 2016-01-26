@@ -6,67 +6,94 @@ using System.Net; //Used for IPEndPoint
 using System.Net.Sockets; //Used for UDPClient
 using System.Text; //Used for Encoding
 
-public class LaserRange : MonoBehaviour {
+public class SimuLIDAR : MonoBehaviour {
 	public float max_distance = 7.0f;
 	public int id = 1;
+    public int dataLimit= 20;
+    public int limitFlag = 0;
 
 	//This variable is used to reset the send queue
 	Boolean stop_send = false;
 	
 	private float angle = 0.0f;
 	private float distance = 0.0f;
-	private float x = 0.0f;
-	private float y = 0.0f;
-
+    private string send_string = "";
+    
 	//Below Variables are for handling the UDP data
 	UdpClient client;
 	IPEndPoint remoteEndPoint;
 	public int port = 8051;
 	public string ip = "127.0.0.1";
 
-	//Below is used to create a separate Thread for Sending UDP Data
-	Thread sendThread;
+	//Below is used to handle Sending UDP Data
 	private Queue send_queue = new Queue();
+    string data = " ";
 
-
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
 		remoteEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
-		client = new UdpClient (port);
-		client.Client.Blocking = false;
+        
+        client = new UdpClient();
+        client.Connect(remoteEndPoint);
 
-		Thread.Sleep (20);
+    }
 
-		sendThread = new Thread(
-			new ThreadStart (SendData));
-		sendThread.IsBackground = false;
-		sendThread.Start ();
-	}
 	
 	// Update is called once per frame
 	void Update () {
+        data = client.Receive(ref remoteEndPoint).ToString();
 		if (Input.GetKeyDown ("q")) {
 			stop_send = true;
 			print ("Thread Halted, safe to stop");
 		}
+        else if( data == "\x02\x00")
+        {
+            data = " ";
+            StartCoroutine (DataQueueing());
+        }
 	}
+    
+	IEnumerator DataQueueing(){
+        //if we reach our given limit, send the data
+        while (limitFlag != dataLimit)
+        {
+            CollectData();
+        }
+        
+        ReadyDataOnQueue();
+        SendData();
+        yield return 0;
+    }
 
-	void FixedUpdate(){
-		RaycastHit hit;
+    void CollectData()
+    {
+        RaycastHit hit;
 
-		Vector3 fwd = transform.TransformDirection (Vector3.forward);
-		if (Physics.Raycast (transform.position, fwd, out hit, max_distance)) {
-			distance = hit.distance;
-		} else {
-			distance = 0;
-		}
-		angle = transform.parent.eulerAngles.y;
+        Vector3 fwd = transform.TransformDirection(Vector3.forward);
+        if (Physics.Raycast(transform.position, fwd, out hit, max_distance))
+        {
+            distance = hit.distance;
+        }
+        else {
+            distance = 0;
+        }
+        angle = transform.parent.eulerAngles.y;
 
-		x = distance * Mathf.Cos (angle);
-		y = distance * Mathf.Sin (angle);
-		string send_string = "(" + id.ToString () + ",(" + x.ToString() +"," + y.ToString () +"))";
-		send_queue.Enqueue (send_string);
-	}
+
+        //Data format : may change
+        //r,θ;r,θ;r,θ;...;\n
+        send_string += distance.ToString() + "," + angle.ToString() + ";";
+        limitFlag++;
+    }
+    void ReadyDataOnQueue() {
+        limitFlag = 0;
+        //send_string += meta_data;  //metadata: id, etc.
+        send_string += "| simulation \n"; //line end + metadata
+        send_queue.Enqueue(send_string);
+        send_string = ""; //reset string
+
+    }
+
 
 	//Borrowed below from previous LIDAR implementation
 	private void SendData(){
@@ -87,8 +114,6 @@ public class LaserRange : MonoBehaviour {
 	void onApplicationQuit(){
 		print ("QUITTING!");
 		client.Close ();
-		sendThread.Abort ();
-		sendThread.Join ();
 		print ("QUITTING!");
 	}
 
@@ -103,3 +128,5 @@ public class LaserRange : MonoBehaviour {
 
 	}
 }
+
+

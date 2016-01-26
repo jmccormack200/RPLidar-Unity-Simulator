@@ -14,17 +14,6 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public struct LidarPoint{
-	public int Id;
-	public int X;
-	public int Y;
-
-	public LidarPoint(string id, string x, string y){
-		Id = int.Parse (id);
-		X  = int.Parse (x);
-		Y  = int.Parse (y);
-	}
-}
 
 
 public class UDPTest : MonoBehaviour {
@@ -56,27 +45,15 @@ public class UDPTest : MonoBehaviour {
 
 	bool stop_send = false;
 
-
+    
 	//Dictionary for storing the name/gameobject pairs
 	//private Dictionary<string, GameObject> pointDictionary = new Dictionary<string, GameObject>();
 	public GameObject[] pointArray = new GameObject[370];
 
-	private static void Main(){
-		UDPTest receiveObj = new UDPTest ();
-		receiveObj.init ();
-
-		string text = "";
-		do {
-			text = Console.ReadLine ();
-		}
-		while(!text.Equals ("exit"));
-	}
 
 	// Use this for initialization
 	public void Start () {
 		init ();
-		//Coroutine (Loop());
-		//InvokeRepeating ("Loop", 0, 0.00002f);
 		InvokeRepeating ("Loop", 0, .002f);
 	}
 
@@ -166,8 +143,8 @@ public class UDPTest : MonoBehaviour {
 	}
 
 	private void parseData (LidarPoint lidarpoint){
-		int angle = lidarpoint.X;
-		int length = lidarpoint.Y;
+		int angle = lidarpoint.mAngle;
+		int length = lidarpoint.mDistance;
 		
 		//float angle = N ["angle"].AsFloat;
 		//float length = N ["length"].AsFloat;

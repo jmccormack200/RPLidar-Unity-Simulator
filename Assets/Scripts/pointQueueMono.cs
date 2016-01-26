@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class pointQueueMono : MonoBehaviour {
+public class pointQueueHandler : MonoBehaviour {
 	Queue queue = new Queue();
 	public int scale = 10;
 	
