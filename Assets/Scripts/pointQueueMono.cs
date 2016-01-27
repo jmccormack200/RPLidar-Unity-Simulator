@@ -17,8 +17,8 @@ public class pointQueueHandler : MonoBehaviour {
 	}
 
 	private void parseData (LidarPoint lidarpoint){
-		int angle = lidarpoint.X;
-		int length = lidarpoint.Y;
+		int angle = lidarpoint.mAngle;
+		int length = lidarpoint.mDistance;
 		
 		//float angle = N ["angle"].AsFloat;
 		//float length = N ["length"].AsFloat;

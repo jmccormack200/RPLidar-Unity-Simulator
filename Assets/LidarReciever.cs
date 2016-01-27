@@ -22,7 +22,7 @@ public class LidarReciever : MonoBehaviour {
     private byte[] requestBytes;
 
     public bool okToRecieve = false;
-
+    public float scale;
     // Use this for initialization
     void Start () {
         remoteEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
@@ -70,10 +70,49 @@ public class LidarReciever : MonoBehaviour {
         }
         yield return StartCoroutine(DrawPoints(lidarQueue));
     }
-    IEnumerator DrawPoints(Queue lidarQueue) {
+    IEnumerator DrawPoints(Queue lidarQueue)
+    {
+
+        while (lidarQueue.Count > 0)
+        {
+            LidarPoint lidarPoint = (LidarPoint)lidarQueue.Dequeue();
+            int angle = lidarPoint.mAngle;
+            int length = lidarPoint.mDistance;
+
+            //float angle = N ["angle"].AsFloat;
+            //float length = N ["length"].AsFloat;
+
+            float radians = angle * (Mathf.PI / 180);
+            float x = length * Mathf.Sin(radians);
+            float y = length * Mathf.Cos(radians);
+            float z = 0.0f;
+
+
+            float new_x = transform.position.x + x;
+            new_x = new_x / scale;
+            float new_y = transform.position.y + y;
+            new_y = new_y / scale;
+            float new_z = transform.position.z + z;
+
+            Vector3 locationVector3 = new Vector3(new_x, new_y, new_z);
+            if (pointObjects[angle]) { 
+
+                float distance = Vector3.Distance(pointObjects[angle].transform.position, locationVector3);
+                if (distance >= 50)
+                {
+                    pointObjects[angle].transform.position = locationVector3;
+                }
+
+            }
+            else
+            {
+                Instantiate(pointObjectPrefab, locationVector3, transform.rotation);
+            }
+            okToRecieve = true;
+            yield return 0;
+        }
 
         okToRecieve = true;
         yield return 0;
     }
-
 }
