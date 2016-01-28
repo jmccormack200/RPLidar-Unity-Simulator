@@ -57,7 +57,7 @@ public class SimuLIDAR : MonoBehaviour {
         //if we reach our given limit, send the data
         while (limitFlag != dataLimit)
         {
-            CollectData();
+            yield return StartCoroutine(CollectData());
         }
         
         ReadyDataOnQueue();
@@ -65,7 +65,7 @@ public class SimuLIDAR : MonoBehaviour {
         yield return 0;
     }
 
-    void CollectData()
+    IEnumerator CollectData()
     {
         RaycastHit hit;
 
@@ -84,6 +84,7 @@ public class SimuLIDAR : MonoBehaviour {
         //r,θ;r,θ;r,θ;...;\n
         send_string += distance.ToString() + "," + angle.ToString() + ";";
         limitFlag++;
+        yield return 0;
     }
     void ReadyDataOnQueue() {
         limitFlag = 0;
