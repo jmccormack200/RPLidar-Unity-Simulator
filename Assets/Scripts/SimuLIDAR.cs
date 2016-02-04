@@ -11,9 +11,9 @@ public class SimuLIDAR : MonoBehaviour {
 	public int id = 1;
     public int dataLimit= 20;
     public int limitFlag = 0;
-
+    public bool collecting = false;
 	//This variable is used to reset the send queue
-	Boolean stop_send = false;
+	private bool stop_send = false;
 	
 	private float angle = 0.0f;
 	private float distance = 0.0f;
@@ -46,10 +46,12 @@ public class SimuLIDAR : MonoBehaviour {
 			stop_send = true;
 			print ("Thread Halted, safe to stop");
 		}
-        else if( data == "\x02\x00")
+        else if( data == "\x02\x00" && !collecting)
         {
             data = " ";
+            collecting = true;
             StartCoroutine (DataQueueing());
+            
         }
 	}
     
@@ -57,12 +59,12 @@ public class SimuLIDAR : MonoBehaviour {
         //if we reach our given limit, send the data
         while (limitFlag != dataLimit)
         {
-            yield return StartCoroutine(CollectData());
+            yield return CollectData();
         }
         
-        ReadyDataOnQueue();
-        SendData();
-        yield return 0;
+        yield return ReadyDataOnQueue();
+        
+        
     }
 
     IEnumerator CollectData()
@@ -86,18 +88,18 @@ public class SimuLIDAR : MonoBehaviour {
         limitFlag++;
         yield return 0;
     }
-    void ReadyDataOnQueue() {
+    private IEnumerable ReadyDataOnQueue() {
         limitFlag = 0;
         //send_string += meta_data;  //metadata: id, etc.
         send_string += "| simulation \n"; //line end + metadata
         send_queue.Enqueue(send_string);
         send_string = ""; //reset string
-
+        yield return SendData();
     }
 
 
 	//Borrowed below from previous LIDAR implementation
-	private void SendData(){
+	private IEnumerable SendData(){
 		while(stop_send == false){
 			try {
 				if (send_queue.Count > 0){
@@ -110,6 +112,7 @@ public class SimuLIDAR : MonoBehaviour {
 				print (err.ToString ());
 			}
 		}
+        yield return 0;
 	}
 
 	void onApplicationQuit(){
